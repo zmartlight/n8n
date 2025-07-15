@@ -193,7 +193,7 @@ const createEndpointMappingFn =
 			connectingHandle.value?.handleId === handleId;
 		const offsetValue =
 			position === Position.Bottom
-				? `${GRID_SIZE * 2 * (1 + index * 2) + CONFIGURATION_NODE_OFFSET}px`
+				? `${GRID_SIZE * (2 + 3 * index) + CONFIGURATION_NODE_OFFSET}px`
 				: isExperimentalEmbeddedNdvShown.value && endpoints.length === 1
 					? `${(1 + index) * (GRID_SIZE * 2)}px`
 					: `${(100 / (endpoints.length + 1)) * (index + 1)}%`;

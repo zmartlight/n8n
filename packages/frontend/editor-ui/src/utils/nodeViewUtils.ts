@@ -621,7 +621,8 @@ export function calculateNodeSize(
 	if (isConfigurable) {
 		return {
 			width:
-				Math.max(NODE_MIN_INPUT_ITEMS_COUNT, nonMainInputCount) * GRID_SIZE * 4 +
+				GRID_SIZE * 1 +
+				Math.max(NODE_MIN_INPUT_ITEMS_COUNT, nonMainInputCount) * GRID_SIZE * 3 +
 				CONFIGURATION_NODE_OFFSET * 2,
 			height: isConfiguration ? CONFIGURATION_NODE_SIZE[1] : height,
 		};
