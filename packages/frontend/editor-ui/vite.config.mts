@@ -124,13 +124,12 @@ const plugins: UserConfig['plugins'] = [
 		renderLegacyChunks: false,
 	}),
 	{
-		name: 'Insert config script',
-		transformIndexHtml: (html, ctx) => {
-			const replacement = ctx.server
-				? '' // Skip when using Vite dev server
-				: '<script src="/{{BASE_PATH}}/{{REST_ENDPOINT}}/config.js"></script>';
-
-			return html.replace('%CONFIG_SCRIPT%', replacement);
+		name: 'Resolve Server Path (dev-only)',
+		apply: 'serve',
+		transformIndexHtml: (html) => {
+			return html
+				.replaceAll('/{{BASE_PATH}}/', 'http://localhost:5678/')
+				.replaceAll('{{REST_ENDPOINT}}', 'rest');
 		},
 	},
 	// For sanitize-html
