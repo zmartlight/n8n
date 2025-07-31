@@ -2,13 +2,21 @@
 import { ref, computed, onMounted } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { AllCommunityModule, ModuleRegistry, themeQuartz, iconSetAlpine } from 'ag-grid-community';
-import type { GridApi, GridReadyEvent, IHeaderParams, ColDef } from 'ag-grid-community';
+import type {
+	GridApi,
+	GridReadyEvent,
+	IHeaderParams,
+	ColDef,
+	CellEditingStoppedEvent,
+	ICellRendererParams,
+} from 'ag-grid-community';
 import { useMessage } from '@/composables/useMessage';
 import { MODAL_CONFIRM } from '@/constants';
 import type { DataStoreMetadata, DataStoreRow } from './datastore.types';
 import { fetchDataStoreMetadata } from './datastore.api';
 import { useRootStore } from '@n8n/stores/useRootStore';
 import { useToast } from '@/composables/useToast';
+import { useDocumentTitle } from '@/composables/useDocumentTitle';
 
 const n8nDataTableThemeSettings = themeQuartz.withPart(iconSetAlpine).withParams({
 	columnBorder: true,
@@ -30,6 +38,7 @@ const props = defineProps<Props>();
 
 const message = useMessage();
 const toast = useToast();
+const documentTitle = useDocumentTitle();
 
 const rootStore = useRootStore();
 
@@ -76,6 +85,29 @@ const loadColumnOrder = (dataStoreId: string): string[] | null => {
 	} catch (error) {
 		return null;
 	}
+};
+
+// Date cell renderer component for formatting dates in local format
+const DateCellRenderer = {
+	template: '<span>{{ formattedDate }}</span>',
+	setup(componentProps: { params: ICellRendererParams }) {
+		const formattedDate = computed(() => {
+			const value = componentProps.params.value as string;
+			if (!value) return '';
+
+			try {
+				const date = new Date(value);
+				if (isNaN(date.getTime())) return value; // Return original if invalid date
+				return date.toLocaleDateString();
+			} catch {
+				return value; // Return original if parsing fails
+			}
+		});
+
+		return {
+			formattedDate,
+		};
+	},
 };
 
 // Custom header component that includes sorting and conditionally shows the add button
@@ -185,7 +217,7 @@ const addNewColumn = async () => {
 		if (!columnName) return;
 
 		// Add new column to the grid
-		const newColumn = {
+		const newColumn: ColDef = {
 			field: columnName,
 			editable: true,
 			sortable: true,
@@ -247,6 +279,8 @@ const fetchData = async () => {
 			sortable: true,
 			// Use custom header for all columns - it will show + button only on last column
 			headerComponent: CustomHeaderComponent,
+			// Use date cell renderer for date columns
+			...(col.type === 'date' && { cellRenderer: DateCellRenderer }),
 		}));
 
 		// Apply saved column order if it exists
@@ -352,7 +386,26 @@ const onAddRowClick = async () => {
 	}
 };
 
+// When editing is stopped, update data in the store
+const onCellEditingStopped = (event: CellEditingStoppedEvent) => {
+	editInProgress.value = false;
+
+	// Update the row data with the edited value
+	if (event.data && event.colDef.field) {
+		const rowIndex = event.rowIndex;
+		const field = event.colDef.field;
+		const newValue = event.value;
+		rowData.value.find((row, index) => {
+			if (index === rowIndex) {
+				row[field] = newValue;
+				return true; // Stop searching once we find the row
+			}
+			return false;
+		});
+	}
+};
 onMounted(async () => {
+	documentTitle.set('Data Store Details');
 	await fetchData();
 	totalItems.value = dataStoreMetadata.value?.content?.totalRows ?? 0;
 	initialized.value = true;
@@ -373,6 +426,8 @@ onMounted(async () => {
 				:theme="n8nDataTableThemeSettings"
 				@grid-ready="onGridReady"
 				@column-moved="onColumnMoved"
+				@cell-editing-started="() => (editInProgress = true)"
+				@cell-editing-stopped="onCellEditingStopped"
 			/>
 			<div :class="$style.listFooter">
 				<n8n-icon-button
@@ -455,6 +510,7 @@ onMounted(async () => {
 		height: 100%;
 		position: relative;
 		top: -1px;
+		margin: 0;
 
 		input {
 			height: 100%;
