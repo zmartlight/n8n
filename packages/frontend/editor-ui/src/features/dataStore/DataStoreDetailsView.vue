@@ -29,6 +29,7 @@ const dataStoreMetadata = ref<DataStoreMetadata | null>(null);
 
 const fetching = ref(true);
 const initialized = ref(false);
+const editInProgress = ref(false);
 
 // AG Grid State
 const gridApi = ref<GridApi | null>(null);
@@ -40,44 +41,6 @@ const currentPage = ref(1);
 const pageSize = ref(20);
 const pageSizeOptions = ref([10, 20, 50]);
 const totalItems = ref(0);
-
-const addNewColumn = async () => {
-	const promptResponse = await message.prompt('Add New Column', {
-		inputValidator: (value) => {
-			// TODO: Check duplicate column names if needed
-			if (!value) return 'Column name is required';
-			return true;
-		},
-	});
-	if (promptResponse.action === MODAL_CONFIRM) {
-		const columnName = promptResponse.value.trim();
-		if (!columnName) return;
-
-		// Add new column to the grid
-		const newColumn = {
-			field: columnName,
-			editable: true,
-			sortable: true,
-			headerComponent: CustomHeaderComponent,
-		};
-		colDefs.value.push(newColumn);
-
-		// Add empty values for the new column to all existing rows
-		rowData.value.forEach((row) => {
-			row[columnName] = '';
-		});
-
-		// Refresh the grid to show the new column and update auto-sizing
-		if (gridApi.value) {
-			// Update the grid with new column definitions
-			gridApi.value.setGridOption('columnDefs', [...colDefs.value]);
-			// Auto-resize columns to fit the grid width
-			gridApi.value.sizeColumnsToFit();
-			// Refresh headers to update the plus button position
-			gridApi.value.refreshHeader();
-		}
-	}
-};
 
 // Custom header component that includes sorting and conditionally shows the add button
 // TODO:
@@ -169,6 +132,48 @@ const CustomHeaderComponent = {
 	},
 };
 
+const addNewColumn = async () => {
+	if (editInProgress.value) {
+		toast.showError(new Error('Cannot add column while editing is in progress'), 'Error');
+		return;
+	}
+	const promptResponse = await message.prompt('Add New Column', {
+		inputValidator: (value) => {
+			// TODO: Check duplicate column names if needed
+			if (!value) return 'Column name is required';
+			return true;
+		},
+	});
+	if (promptResponse.action === MODAL_CONFIRM) {
+		const columnName = promptResponse.value.trim();
+		if (!columnName) return;
+
+		// Add new column to the grid
+		const newColumn = {
+			field: columnName,
+			editable: true,
+			sortable: true,
+			headerComponent: CustomHeaderComponent,
+		};
+		colDefs.value.push(newColumn);
+
+		// Add empty values for the new column to all existing rows
+		rowData.value.forEach((row) => {
+			row[columnName] = '';
+		});
+
+		// Refresh the grid to show the new column and update auto-sizing
+		if (gridApi.value) {
+			// Update the grid with new column definitions
+			gridApi.value.setGridOption('columnDefs', [...colDefs.value]);
+			// Auto-resize columns to fit the grid width
+			gridApi.value.sizeColumnsToFit();
+			// Refresh headers to update the plus button position
+			gridApi.value.refreshHeader();
+		}
+	}
+};
+
 const onGridReady = (params: GridReadyEvent) => {
 	gridApi.value = params.api;
 };
@@ -223,6 +228,68 @@ const setPageSize = async (size: number) => {
 	await fetchData();
 };
 
+const onAddRowClick = async () => {
+	// Go to last page if we are not there already
+	if (currentPage.value * pageSize.value < totalItems.value) {
+		await setCurrentPage(Math.ceil(totalItems.value / pageSize.value));
+	}
+
+	// Create a new empty row with default values for all columns
+	const newRow: DataStoreRow = {};
+	colDefs.value.forEach((col) => {
+		if (col.field) {
+			// Respect the column type and set default values
+			switch (col.type) {
+				case 'string':
+					newRow[col.field] = '';
+					break;
+				case 'number':
+					newRow[col.field] = 0;
+					break;
+				case 'boolean':
+					newRow[col.field] = false;
+					break;
+				case 'date':
+					newRow[col.field] = new Date().toISOString(); // Use ISO string for date
+					break;
+				default:
+					newRow[col.field] = ''; // Default to empty string for unknown types
+					break;
+			}
+		}
+	});
+
+	// Add the new row to the grid
+	rowData.value.push(newRow);
+	totalItems.value += 1;
+
+	// Refresh the grid to show the new row
+	if (gridApi.value) {
+		gridApi.value.setGridOption('rowData', [...rowData.value]);
+
+		// Wait for the grid to update, then start editing the first editable cell
+		setTimeout(() => {
+			if (gridApi.value) {
+				editInProgress.value = true;
+				// Get all displayed columns in their current order (accounts for reordering)
+				const displayedColumns = gridApi.value.getAllDisplayedColumns();
+				const firstEditableColumn = displayedColumns.find((col) => {
+					const colDef = col.getColDef();
+					return colDef.editable === true;
+				});
+
+				if (firstEditableColumn) {
+					const rowIndex = rowData.value.length - 1;
+					gridApi.value.startEditingCell({
+						rowIndex,
+						colKey: firstEditableColumn.getColId(),
+					});
+				}
+			}
+		}, 100);
+	}
+};
+
 onMounted(async () => {
 	await fetchData();
 	totalItems.value = dataStoreMetadata.value?.content?.totalRows ?? 0;
@@ -245,7 +312,13 @@ onMounted(async () => {
 				@column-moved="onColumnMoved"
 			/>
 			<div :class="$style.listFooter">
-				<n8n-icon-button icon="plus" class="mb-xl" type="secondary" :disabled="hasTempRow" />
+				<n8n-icon-button
+					icon="plus"
+					class="mb-xl"
+					type="secondary"
+					:disabled="editInProgress"
+					@click="onAddRowClick"
+				/>
 				<el-pagination
 					v-model:current-page="currentPage"
 					v-model:page-size="pageSize"
