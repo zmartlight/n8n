@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
+import { AllCommunityModule, ModuleRegistry, themeQuartz, iconSetAlpine } from 'ag-grid-community';
 import type { GridApi, GridReadyEvent, IHeaderParams, ColDef } from 'ag-grid-community';
 import { useMessage } from '@/composables/useMessage';
 import { MODAL_CONFIRM } from '@/constants';
@@ -9,6 +9,14 @@ import type { DataStoreMetadata, DataStoreRow } from './datastore.types';
 import { fetchDataStoreMetadata } from './datastore.api';
 import { useRootStore } from '@n8n/stores/useRootStore';
 import { useToast } from '@/composables/useToast';
+
+const n8nDataTableThemeSettings = themeQuartz.withPart(iconSetAlpine).withParams({
+	columnBorder: true,
+	rowBorder: true,
+	rowVerticalPaddingScale: 0.8,
+	sidePanelBorder: true,
+	wrapperBorder: true,
+});
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -41,6 +49,34 @@ const currentPage = ref(1);
 const pageSize = ref(20);
 const pageSizeOptions = ref([10, 20, 50]);
 const totalItems = ref(0);
+
+// Column order persistence
+const COLUMN_ORDERS_KEY = 'N8N_DATA_STORE_COLUMN_ORDERS';
+
+const saveColumnOrder = (dataStoreId: string, columnOrder: string[]) => {
+	try {
+		const existingOrders = JSON.parse(localStorage.getItem(COLUMN_ORDERS_KEY) ?? '{}') as Record<
+			string,
+			string[]
+		>;
+		existingOrders[dataStoreId] = columnOrder;
+		localStorage.setItem(COLUMN_ORDERS_KEY, JSON.stringify(existingOrders));
+	} catch (error) {
+		// Failed to save column order
+	}
+};
+
+const loadColumnOrder = (dataStoreId: string): string[] | null => {
+	try {
+		const existingOrders = JSON.parse(localStorage.getItem(COLUMN_ORDERS_KEY) ?? '{}') as Record<
+			string,
+			string[]
+		>;
+		return existingOrders[dataStoreId] ?? null;
+	} catch (error) {
+		return null;
+	}
+};
 
 // Custom header component that includes sorting and conditionally shows the add button
 // TODO:
@@ -182,6 +218,10 @@ const onColumnMoved = () => {
 	// Refresh headers to update the button visibility
 	if (gridApi.value) {
 		gridApi.value.refreshHeader();
+
+		// Save the new column order
+		const columnOrder = gridApi.value.getAllDisplayedColumns().map((col) => col.getColId());
+		saveColumnOrder(props.id, columnOrder);
 	}
 };
 
@@ -199,7 +239,7 @@ const fetchData = async () => {
 			);
 			return;
 		}
-		colDefs.value = fetchedMetadata.columns.map((col) => ({
+		const initialColDefs = fetchedMetadata.columns.map((col) => ({
 			field: col.name,
 			headerName: col.displayName,
 			editable: col.editable,
@@ -208,6 +248,28 @@ const fetchData = async () => {
 			// Use custom header for all columns - it will show + button only on last column
 			headerComponent: CustomHeaderComponent,
 		}));
+
+		// Apply saved column order if it exists
+		const savedOrder = loadColumnOrder(props.id);
+		if (savedOrder) {
+			// Create a map for quick lookup
+			const colDefMap = new Map(initialColDefs.map((colDef) => [colDef.field, colDef]));
+			// Reorder columns based on saved order, keeping any new columns at the end
+			const reorderedColDefs = [];
+			for (const fieldName of savedOrder) {
+				const colDef = colDefMap.get(fieldName);
+				if (colDef) {
+					reorderedColDefs.push(colDef);
+					colDefMap.delete(fieldName);
+				}
+			}
+			// Add any remaining columns that weren't in the saved order
+			reorderedColDefs.push(...colDefMap.values());
+			colDefs.value = reorderedColDefs;
+		} else {
+			colDefs.value = initialColDefs;
+		}
+
 		rowData.value = fetchedMetadata.content?.rows ?? [];
 		dataStoreMetadata.value = fetchedMetadata;
 	} catch (error) {
@@ -299,7 +361,7 @@ onMounted(async () => {
 <template>
 	<div :class="$style['data-store-details-view']">
 		<div v-if="initialized" :class="$style['grid-container']">
-			<h1>{{ dataStoreMetadata?.name }}</h1>
+			<h1 class="mt-xl mb-xl">{{ dataStoreMetadata?.name }}</h1>
 			<AgGridVue
 				style="width: 100%"
 				:row-data="rowData"
@@ -308,6 +370,7 @@ onMounted(async () => {
 				:auto-size-strategy="{ type: 'fitGridWidth' }"
 				:animate-rows="false"
 				:loading="fetching"
+				:theme="n8nDataTableThemeSettings"
 				@grid-ready="onGridReady"
 				@column-moved="onColumnMoved"
 			/>
@@ -354,7 +417,25 @@ onMounted(async () => {
 	flex-direction: column;
 	width: 100%;
 	align-items: center;
-	gap: var(--spacing-m);
+	gap: var(--spacing-xs);
+
+	// AG Grid style overrides
+	--ag-foreground-color: var(--color-text-base);
+	--ag-accent-color: var(--color-primary);
+	--ag-background-color: var(--color-background-xlight);
+	--ag-border-color: var(--border-color-base);
+	--ag-border-radius: var(--border-radius-base);
+	--ag-wrapper-border-radius: 0;
+	--ag-font-family: var(--font-family);
+	--ag-font-size: var(--font-size-m);
+
+	--ag-header-background-color: var(--color-background-base);
+	--ag-header-font-size: var(--font-size-m);
+	--ag-header-font-weight: var(--font-weight-bold);
+	--ag-header-foreground-color: var(--color-text-dark);
+	--ag-cell-horizontal-padding: calc(var(--ag-grid-size) * 0.7);
+	--ag-row-height: calc(var(--ag-grid-size) * 0.8 + 32px);
+	--ag-header-height: calc(var(--ag-grid-size) * 0.8 + 32px);
 }
 
 .loading-placeholder {
