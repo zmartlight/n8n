@@ -406,10 +406,10 @@ export const fetchDataStores = async (
 	},
 ) => {
 	await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-	let stores = MOCKED_DATASTORES;
-	if (projectId) {
-		stores = MOCKED_DATASTORES.filter((store) => store.projectId === projectId);
-	}
+	const stores = MOCKED_DATASTORES;
+	// if (projectId) {
+	// 	stores = MOCKED_DATASTORES.filter((store) => store.projectId === projectId);
+	// }
 	if (options?.page && options?.pageSize) {
 		const start = (options.page - 1) * options.pageSize;
 		const end = start + options.pageSize;
