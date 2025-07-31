@@ -10,6 +10,8 @@ const i18n = useI18n();
 
 const MainSidebar = async () => await import('@/components/MainSidebar.vue');
 const DataStoreView = async () => await import('@/features/dataStore/DataStoreView.vue');
+const DataStoreDetailsView = async () =>
+	await import('@/features/dataStore/DataStoreDetailsView.vue');
 
 export const DataStoreModule: FrontendModuleDescription = {
 	id: 'data-store',
@@ -46,7 +48,7 @@ export const DataStoreModule: FrontendModuleDescription = {
 			path: 'datastores/:id',
 			props: true,
 			components: {
-				default: DataStoreView,
+				default: DataStoreDetailsView,
 				sidebar: MainSidebar,
 			},
 			meta: {

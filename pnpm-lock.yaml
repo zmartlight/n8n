@@ -2440,6 +2440,9 @@ importers:
       '@vueuse/core':
         specifier: catalog:frontend
         version: 10.11.0(vue@3.5.13(typescript@5.8.3))
+      ag-grid-vue3:
+        specifier: ^34.1.0
+        version: 34.1.0(vue@3.5.13(typescript@5.8.3))
       array.prototype.tosorted:
         specifier: 1.1.4
         version: 1.1.4
@@ -7984,6 +7987,17 @@ packages:
   adm-zip@0.5.10:
     resolution: {integrity: sha512-x0HvcHqVJNTPk/Bw8JbLWlWoo6Wwnsug0fnYYro1HBrjxZ3G7/AZk7Ahv8JwDe1uIcz8eBqvu86FuF1POiG7vQ==}
     engines: {node: '>=6.0'}
+
+  ag-charts-types@12.1.0:
+    resolution: {integrity: sha512-qeODwJ1EqKjpwEbp0mQ2wQ0arRNYaZo2BafdAGfcuOwjOBlagSwJvUg5MCvAYZ/W/mg2uEmt7jKMNfDy4ul4+Q==}
+
+  ag-grid-community@34.1.0:
+    resolution: {integrity: sha512-3rZiOyyCGqSNqqTsrWafDVj1WfK43jfb53Ka5sqzdOG/yu6ySUFmdc0h/OuGLnkzwW5PC29coQwbS2rkb4c9dA==}
+
+  ag-grid-vue3@34.1.0:
+    resolution: {integrity: sha512-yawBWS46Sdaf54yFIcgk3kD222rVrhB+TQFNuKUA25/yxPESkYR2+9tTNYIBG8OsJljZi8aaO1FRzTDGz5W2Jw==}
+    peerDependencies:
+      vue: ^3.5.0
 
   agent-base@5.1.1:
     resolution: {integrity: sha512-TMeqbNl2fMW0nMjTEPOwe3J/PRFP4vqeoNuQMG0HlMrtm5QxKqdvAkZ1pRBQ/ulIyDD5Yq0nJ7YbdD8ey0TO3g==}
@@ -22690,6 +22704,17 @@ snapshots:
   acorn@8.15.0: {}
 
   adm-zip@0.5.10: {}
+
+  ag-charts-types@12.1.0: {}
+
+  ag-grid-community@34.1.0:
+    dependencies:
+      ag-charts-types: 12.1.0
+
+  ag-grid-vue3@34.1.0(vue@3.5.13(typescript@5.8.3)):
+    dependencies:
+      ag-grid-community: 34.1.0
+      vue: 3.5.13(typescript@5.8.3)
 
   agent-base@5.1.1: {}
 
