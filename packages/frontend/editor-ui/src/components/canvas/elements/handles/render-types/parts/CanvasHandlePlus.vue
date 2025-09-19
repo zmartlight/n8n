@@ -109,7 +109,7 @@ function onClick(event: MouseEvent) {
 			:y1="linePosition[0][1]"
 			:x2="linePosition[1][0]"
 			:y2="linePosition[1][1]"
-			stroke="var(--color-foreground-xdark)"
+			stroke="var(--color-foreground-dark)"
 			stroke-width="2"
 		/>
 		<g
@@ -124,7 +124,7 @@ function onClick(event: MouseEvent) {
 				y="2"
 				width="20"
 				height="20"
-				stroke="var(--color-foreground-xdark)"
+				stroke="var(--color-foreground-dark)"
 				stroke-width="2"
 				rx="4"
 				fill="var(--color-foreground-xlight)"

@@ -68,7 +68,7 @@ const edgeColor = computed(() => {
 	} else if (props.selected) {
 		return 'var(--color-background-dark)';
 	} else {
-		return 'var(--color-foreground-xdark)';
+		return 'var(--color-foreground-dark)';
 	}
 });
 

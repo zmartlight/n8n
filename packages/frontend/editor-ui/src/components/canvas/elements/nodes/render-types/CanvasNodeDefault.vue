@@ -180,7 +180,7 @@ function onActivate(event: MouseEvent) {
 
 <style lang="scss" module>
 .node {
-	--canvas-node-border-width: 2px;
+	--canvas-node-border-width: 1px;
 	--trigger-node--border-radius: 36px;
 	--canvas-node--status-icons-offset: var(--spacing-3xs);
 	--node-icon-color: var(--color-foreground-dark);
@@ -193,7 +193,7 @@ function onActivate(event: MouseEvent) {
 	justify-content: center;
 	background: var(--canvas-node--background, var(--color-node-background));
 	border: var(--canvas-node-border-width) solid
-		var(--canvas-node--border-color, var(--color-foreground-xdark));
+		var(--canvas-node--border-color, var(--color-foreground-dark));
 	border-radius: var(--border-radius-large);
 
 	&.trigger {
@@ -277,6 +277,7 @@ function onActivate(event: MouseEvent) {
 			--color-canvas-node-success-border-color,
 			var(--color-success)
 		);
+		--canvas-node-border-width: 2px;
 	}
 
 	&.warning {
@@ -285,6 +286,7 @@ function onActivate(event: MouseEvent) {
 
 	&.error {
 		--canvas-node--border-color: var(--color-canvas-node-error-border-color, var(--color-danger));
+		--canvas-node-border-width: 2px;
 	}
 
 	&.pinned {
