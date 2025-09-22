@@ -498,6 +498,11 @@
 		var(--node-type-background-l)
 	);
 
+	// general canvas elements
+	--color--connection-line: var(--p-gray-540);
+	--canvas--background: var(--p-gray-820);
+	--canvas-node--border-color: transparent;
+
 	// Various
 	--color-info-tint-1: var(--p-gray-420);
 	--color-info-tint-2: var(--p-gray-740);

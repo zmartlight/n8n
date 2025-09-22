@@ -69,13 +69,6 @@ const commonClasses = computed(() => [
 			</N8nTooltip>
 		</div>
 	</div>
-	<div
-		v-else-if="isNodeExecuting"
-		data-test-id="canvas-node-status-running"
-		:class="[...commonClasses, $style.running]"
-	>
-		<N8nIcon icon="refresh-cw" spin />
-	</div>
 	<div v-else-if="isDisabled" :class="[...commonClasses, $style.disabled]">
 		<N8nIcon icon="power" :size="size" />
 	</div>

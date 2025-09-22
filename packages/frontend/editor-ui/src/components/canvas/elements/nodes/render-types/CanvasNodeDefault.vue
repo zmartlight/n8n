@@ -304,11 +304,7 @@ function onActivate(event: MouseEvent) {
 	}
 
 	&.running {
-		background-color: var(--color-node-executing-background);
-		--canvas-node--border-color: var(
-			--color-canvas-node-running-border-color,
-			var(--color-node-running-border)
-		);
+		--canvas-node--border-color: transparent;
 	}
 
 	&.waiting {
@@ -316,6 +312,48 @@ function onActivate(event: MouseEvent) {
 			--color-canvas-node-waiting-border-color,
 			var(--color-secondary)
 		);
+	}
+}
+
+.running::after {
+	content: '';
+	position: absolute;
+	inset: -4px;
+	border-radius: 8px;
+	z-index: -1;
+	background: conic-gradient(
+		from var(--angle),
+		#aaa,
+		#aaa 20%,
+		transparent 35%,
+		transparent 65%,
+		#aaa 90%,
+		#aaa
+	);
+	background: conic-gradient(
+		from var(--angle),
+		#ff6d5a,
+		#ff6d5a 20%,
+		transparent 35%,
+		transparent 65%,
+		#ff6d5a 90%,
+		#ff6d5a
+	);
+	animation: border-rotate 1.5s linear infinite;
+}
+
+@property --angle {
+	syntax: '<angle>';
+	initial-value: 0deg;
+	inherits: false;
+}
+
+@keyframes border-rotate {
+	from {
+		--angle: 0deg;
+	}
+	to {
+		--angle: 360deg;
 	}
 }
 

@@ -18,7 +18,7 @@ withDefaults(
 	width: var(--handle--indicator--width);
 	height: var(--handle--indicator--height);
 	border-radius: 50%;
-	background: var(--color-foreground-dark);
+	background: var(--color--connection-line);
 
 	&:hover {
 		background: var(--color-primary);

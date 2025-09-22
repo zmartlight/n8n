@@ -17,7 +17,7 @@ withDefaults(
 .rectangle {
 	width: var(--handle--indicator--width);
 	height: var(--handle--indicator--height);
-	background: var(--color-foreground-dark);
+	background: var(--color--connection-line);
 
 	&:hover {
 		background: var(--color-primary);
