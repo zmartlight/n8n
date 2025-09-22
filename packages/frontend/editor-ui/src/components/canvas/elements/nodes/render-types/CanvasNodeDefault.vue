@@ -206,7 +206,6 @@ function onActivate(event: MouseEvent) {
 	 */
 
 	&.configuration {
-		background: var(--canvas-node--background, var(--node-type-supplemental-background));
 		border: var(--canvas-node-border-width) solid
 			var(--canvas-node--border-color, var(--color-foreground-dark));
 		border-radius: calc(var(--canvas-node--height) / 2);
