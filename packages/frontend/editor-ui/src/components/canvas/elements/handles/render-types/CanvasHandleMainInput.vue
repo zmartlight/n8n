@@ -19,7 +19,7 @@ const handleClasses = 'target';
 <template>
 	<div :class="classes">
 		<div :class="[$style.label]">{{ label }}</div>
-		<CanvasHandleRectangle :handle-classes="handleClasses" :execution-status="executionStatus" />
+		<CanvasHandleDot :handle-classes="handleClasses" :execution-status="executionStatus" />
 	</div>
 </template>
 
