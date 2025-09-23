@@ -39,7 +39,7 @@ const handleClasses = 'target';
 	transform-origin: center left;
 	font-size: var(--font-size-2xs);
 	color: var(--color-foreground-xdark);
-	background: var(--color-canvas-label-background);
+	background: var(--canvas--background);
 	z-index: 1;
 	text-align: center;
 	white-space: nowrap;

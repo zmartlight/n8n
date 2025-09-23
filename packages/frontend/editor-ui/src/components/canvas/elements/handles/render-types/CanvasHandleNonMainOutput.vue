@@ -37,7 +37,7 @@ const classes = computed(() => ({
 	transform: translate(-50%, 0) scale(var(--canvas-zoom-compensation-factor, 1));
 	font-size: var(--font-size-2xs);
 	color: var(--node-type-supplemental-color);
-	background: var(--color-canvas-label-background);
+	background: var(--canvas--background);
 	z-index: 0;
 	white-space: nowrap;
 }

@@ -180,7 +180,7 @@ function onActivate(event: MouseEvent) {
 
 <style lang="scss" module>
 .node {
-	--canvas-node-border-width: 1px;
+	--canvas-node-border-width: 1.5px;
 	--trigger-node--border-radius: 36px;
 	--canvas-node--status-icons-offset: var(--spacing-3xs);
 	--node-icon-color: var(--color-foreground-dark);
@@ -192,6 +192,7 @@ function onActivate(event: MouseEvent) {
 	align-items: center;
 	justify-content: center;
 	background: var(--canvas-node--background, var(--color-node-background));
+	background-clip: padding-box;
 	border: var(--canvas-node-border-width) solid
 		var(--canvas-node--border-color, var(--color-foreground-dark));
 	border-radius: var(--border-radius-large);

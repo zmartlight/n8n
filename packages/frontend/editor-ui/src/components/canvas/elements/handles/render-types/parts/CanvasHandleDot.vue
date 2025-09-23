@@ -31,6 +31,7 @@ const statusClasses = computed(() => {
 .dot {
 	width: var(--handle--indicator--width);
 	height: var(--handle--indicator--height);
+	border: 2px solid var(--canvas--background);
 	border-radius: 50%;
 	background: var(--color--connection-line);
 
@@ -55,7 +56,7 @@ const statusClasses = computed(() => {
 	}
 
 	&.default {
-		background: var(--color--connection-line);
+		background: var(--node-handle--background);
 
 		&:hover {
 			background: var(--color-primary);
