@@ -133,6 +133,7 @@ function onClick(event: MouseEvent) {
 				stroke="var(--color--connection-line)"
 				stroke-linecap="round"
 				stroke-linejoin="round"
+				stroke-width="2"
 				d="M8 12h8m-4-4v8"
 				class="source clickable"
 			/>
@@ -165,10 +166,12 @@ function onClick(event: MouseEvent) {
 
 			path {
 				fill: var(--color-primary);
+				stroke: var(--p-white);
 			}
 
 			rect {
 				stroke: var(--color-primary);
+				fill: var(--color-primary);
 			}
 		}
 	}
