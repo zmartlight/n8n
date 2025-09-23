@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import CanvasHandlePlus from '@/components/canvas/elements/handles/render-types/parts/CanvasHandlePlus.vue';
 import { useCanvasNodeHandle } from '@/composables/useCanvasNodeHandle';
+import { useCanvasNode } from '@/composables/useCanvasNode';
 import { computed, ref, useCssModule } from 'vue';
 
 const emit = defineEmits<{
@@ -9,6 +10,7 @@ const emit = defineEmits<{
 
 const $style = useCssModule();
 
+const { executionStatus } = useCanvasNode();
 const { label, isConnected, isConnecting, isRequired, maxConnections } = useCanvasNodeHandle();
 
 const handleClasses = 'target';
@@ -44,7 +46,7 @@ function onClickAdd() {
 <template>
 	<div :class="classes">
 		<div :class="[$style.label]">{{ label }}</div>
-		<CanvasHandleDiamond :handle-classes="handleClasses" />
+		<CanvasHandleDiamond :handle-classes="handleClasses" :execution-status="executionStatus" />
 		<Transition name="canvas-node-handle-non-main-input">
 			<CanvasHandlePlus
 				v-if="isHandlePlusAvailable"

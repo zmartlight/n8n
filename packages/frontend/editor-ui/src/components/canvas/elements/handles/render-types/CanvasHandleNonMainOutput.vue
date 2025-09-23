@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { useCanvasNodeHandle } from '@/composables/useCanvasNodeHandle';
+import { useCanvasNode } from '@/composables/useCanvasNode';
 import { computed, useCssModule } from 'vue';
 
 const $style = useCssModule();
+const { executionStatus } = useCanvasNode();
 const { label, isRequired } = useCanvasNodeHandle();
 
 const handleClasses = 'source';
@@ -16,7 +18,7 @@ const classes = computed(() => ({
 <template>
 	<div :class="classes">
 		<div :class="$style.label">{{ label }}</div>
-		<CanvasHandleDiamond :handle-classes="handleClasses" />
+		<CanvasHandleDiamond :handle-classes="handleClasses" :execution-status="executionStatus" />
 	</div>
 </template>
 

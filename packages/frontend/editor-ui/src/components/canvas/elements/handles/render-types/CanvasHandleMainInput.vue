@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import { useCanvasNodeHandle } from '@/composables/useCanvasNodeHandle';
+import { useCanvasNode } from '@/composables/useCanvasNode';
 import { computed, useCssModule } from 'vue';
 
 const $style = useCssModule();
 
+const { executionStatus } = useCanvasNode();
 const { label, isRequired } = useCanvasNodeHandle();
 
 const classes = computed(() => ({
@@ -17,7 +19,7 @@ const handleClasses = 'target';
 <template>
 	<div :class="classes">
 		<div :class="[$style.label]">{{ label }}</div>
-		<CanvasHandleRectangle :handle-classes="handleClasses" />
+		<CanvasHandleRectangle :handle-classes="handleClasses" :execution-status="executionStatus" />
 	</div>
 </template>
 
