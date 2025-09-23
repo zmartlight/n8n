@@ -296,13 +296,6 @@ function onActivate(event: MouseEvent) {
 		);
 	}
 
-	&.disabled {
-		--canvas-node--border-color: var(
-			--color-canvas-node-disabled-border-color,
-			var(--color-foreground-base)
-		);
-	}
-
 	&.running {
 		--canvas-node--border-color: transparent;
 	}
