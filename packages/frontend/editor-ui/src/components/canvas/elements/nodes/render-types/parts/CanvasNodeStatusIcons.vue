@@ -59,17 +59,7 @@ const commonClasses = computed(() => [
 </script>
 
 <template>
-	<div v-if="executionWaiting || executionStatus === 'waiting'">
-		<div :class="[...commonClasses, $style.waiting]">
-			<N8nTooltip placement="bottom">
-				<template #content>
-					<div v-text="executionWaiting"></div>
-				</template>
-				<N8nIcon icon="clock" :size="size" />
-			</N8nTooltip>
-		</div>
-	</div>
-	<div v-else-if="isDisabled" :class="[...commonClasses, $style.disabled]">
+	<div v-if="isDisabled" :class="[...commonClasses, $style.disabled]">
 		<N8nIcon icon="power" :size="size" />
 	</div>
 	<div

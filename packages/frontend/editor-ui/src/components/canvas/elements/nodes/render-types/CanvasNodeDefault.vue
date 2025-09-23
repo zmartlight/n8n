@@ -306,16 +306,10 @@ function onActivate(event: MouseEvent) {
 	&.running {
 		--canvas-node--border-color: transparent;
 	}
-
-	&.waiting {
-		--canvas-node--border-color: var(
-			--color-canvas-node-waiting-border-color,
-			var(--color-secondary)
-		);
-	}
 }
 
-.running::after {
+.running::after,
+.waiting::after {
 	content: '';
 	position: absolute;
 	inset: -4px;
@@ -339,7 +333,14 @@ function onActivate(event: MouseEvent) {
 		#ff6d5a 90%,
 		#ff6d5a
 	);
+}
+
+.running::after {
 	animation: border-rotate 1.5s linear infinite;
+}
+
+.waiting::after {
+	animation: border-rotate 4.5s linear infinite;
 }
 
 @property --angle {
