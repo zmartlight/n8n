@@ -12,7 +12,7 @@ const emit = defineEmits<{
 const $style = useCssModule();
 
 const i18n = useI18n();
-const { render, executionStatus } = useCanvasNode();
+const { render, executionStatus, hasPinnedData } = useCanvasNode();
 const { label, isConnected, isConnecting, isReadOnly, isRequired, runData } = useCanvasNodeHandle();
 
 const handleClasses = 'source';
@@ -78,7 +78,11 @@ function onClickAdd() {
 	<div :class="classes">
 		<div v-if="label" :class="outputLabelClasses">{{ label }}</div>
 		<div v-if="runData" :class="runDataLabelClasses">{{ runDataLabel }}</div>
-		<CanvasHandleDot :handle-classes="handleClasses" :execution-status="executionStatus" />
+		<CanvasHandleDot
+			:handle-classes="handleClasses"
+			:execution-status="executionStatus"
+			:has-pinned-data="hasPinnedData"
+		/>
 		<Transition name="canvas-node-handle-main-output">
 			<CanvasHandlePlus
 				v-if="!isConnected && !isReadOnly"

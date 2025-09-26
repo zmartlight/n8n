@@ -5,7 +5,7 @@ import { computed, useCssModule } from 'vue';
 
 const $style = useCssModule();
 
-const { executionStatus } = useCanvasNode();
+const { executionStatus, hasPinnedData } = useCanvasNode();
 const { label, isRequired } = useCanvasNodeHandle();
 
 const classes = computed(() => ({
@@ -19,7 +19,11 @@ const handleClasses = 'target';
 <template>
 	<div :class="classes">
 		<div :class="[$style.label]">{{ label }}</div>
-		<CanvasHandleDot :handle-classes="handleClasses" :execution-status="executionStatus" />
+		<CanvasHandleDot
+			:handle-classes="handleClasses"
+			:execution-status="executionStatus"
+			:has-pinned-data="hasPinnedData"
+		/>
 	</div>
 </template>
 

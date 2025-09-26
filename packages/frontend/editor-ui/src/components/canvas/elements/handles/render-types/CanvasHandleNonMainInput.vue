@@ -10,7 +10,7 @@ const emit = defineEmits<{
 
 const $style = useCssModule();
 
-const { executionStatus } = useCanvasNode();
+const { executionStatus, hasPinnedData } = useCanvasNode();
 const { label, isConnected, isConnecting, isRequired, maxConnections } = useCanvasNodeHandle();
 
 const handleClasses = 'target';
@@ -46,7 +46,11 @@ function onClickAdd() {
 <template>
 	<div :class="classes">
 		<div :class="[$style.label]">{{ label }}</div>
-		<CanvasHandleDiamond :handle-classes="handleClasses" :execution-status="executionStatus" />
+		<CanvasHandleDiamond
+			:handle-classes="handleClasses"
+			:execution-status="executionStatus"
+			:has-pinned-data="hasPinnedData"
+		/>
 		<Transition name="canvas-node-handle-non-main-input">
 			<CanvasHandlePlus
 				v-if="isHandlePlusAvailable"

@@ -5,14 +5,19 @@ const props = withDefaults(
 	defineProps<{
 		handleClasses?: string;
 		executionStatus?: string;
+		hasPinnedData?: boolean;
 	}>(),
 	{
 		handleClasses: undefined,
 		executionStatus: undefined,
+		hasPinnedData: false,
 	},
 );
 
 const statusClasses = computed(() => {
+	if (props.hasPinnedData) {
+		return 'pinned';
+	}
 	if (['error', 'crashed'].includes(props.executionStatus || '')) {
 		return 'error';
 	}
@@ -37,6 +42,14 @@ const statusClasses = computed(() => {
 
 	&:hover {
 		background: var(--color-primary);
+	}
+
+	&.pinned {
+		background: var(--color-node-pinned-border);
+
+		&:hover {
+			background: var(--color-secondary-shade-1);
+		}
 	}
 
 	&.success {

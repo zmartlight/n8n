@@ -4,7 +4,7 @@ import { useCanvasNode } from '@/composables/useCanvasNode';
 import { computed, useCssModule } from 'vue';
 
 const $style = useCssModule();
-const { executionStatus } = useCanvasNode();
+const { executionStatus, hasPinnedData } = useCanvasNode();
 const { label, isRequired } = useCanvasNodeHandle();
 
 const handleClasses = 'source';
@@ -18,7 +18,11 @@ const classes = computed(() => ({
 <template>
 	<div :class="classes">
 		<div :class="$style.label">{{ label }}</div>
-		<CanvasHandleDiamond :handle-classes="handleClasses" :execution-status="executionStatus" />
+		<CanvasHandleDiamond
+			:handle-classes="handleClasses"
+			:execution-status="executionStatus"
+			:has-pinned-data="hasPinnedData"
+		/>
 	</div>
 </template>
 
