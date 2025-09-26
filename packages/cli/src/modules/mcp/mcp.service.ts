@@ -1,11 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { User } from '@n8n/db';
+import { ExecutionRepository, User } from '@n8n/db';
 import { Service } from '@n8n/di';
 
 import { createWorkflowDetailsTool } from './tools/get-workflow-details.tool';
 import { createExecuteWorkflowTool } from './tools/execute-workflow.tool';
 import { createSearchWorkflowsTool } from './tools/search-workflows.tool';
 
+import { ActiveExecutions } from '@/active-executions';
 import { CredentialsService } from '@/credentials/credentials.service';
 import { UrlService } from '@/services/url.service';
 import { WorkflowFinderService } from '@/workflows/workflow-finder.service';
@@ -22,6 +23,8 @@ export class McpService {
 		private readonly credentialsService: CredentialsService,
 		private readonly workflowExecutionService: WorkflowExecutionService,
 		private readonly testWebhooks: TestWebhooks,
+		private readonly activeExecutions: ActiveExecutions,
+		private readonly executionRepository: ExecutionRepository,
 	) {}
 
 	getServer(user: User) {
@@ -42,6 +45,8 @@ export class McpService {
 			this.workflowFinderService,
 			this.workflowExecutionService,
 			this.testWebhooks,
+			this.activeExecutions,
+			this.executionRepository,
 		);
 		server.registerTool(
 			executeWorkflowTool.name,

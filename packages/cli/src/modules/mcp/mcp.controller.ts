@@ -1,6 +1,6 @@
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { AuthenticatedRequest } from '@n8n/db';
-import { Post, RestController, RootLevelController } from '@n8n/decorators';
+import { Post, RootLevelController } from '@n8n/decorators';
 import type { Response } from 'express';
 import { ErrorReporter } from 'n8n-core';
 
