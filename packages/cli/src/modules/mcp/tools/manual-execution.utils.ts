@@ -1,14 +1,10 @@
 import type { User } from '@n8n/db';
 import type { IWorkflowBase } from 'n8n-workflow';
-import { UserError } from 'n8n-workflow';
 
-import * as WorkflowExecuteAdditionalData from '@/workflow-execute-additional-data';
 import type { TestWebhooks } from '@/webhooks/test-webhooks';
+import * as WorkflowExecuteAdditionalData from '@/workflow-execute-additional-data';
 
-export const MANUAL_EXECUTION_ERROR_MESSAGE =
-	'This workflow requires waiting for an external trigger (for example a webhook) before it can run. Manual execution via MCP is not possible.';
-
-export async function assertManualExecutable({
+export async function isManuallyExecutable({
 	user,
 	workflow,
 	testWebhooks,
@@ -25,7 +21,5 @@ export async function assertManualExecutable({
 		additionalData,
 	});
 
-	if (needsWebhook) {
-		throw new UserError(MANUAL_EXECUTION_ERROR_MESSAGE);
-	}
+	return !needsWebhook;
 }

@@ -2,13 +2,17 @@ import type { User } from '@n8n/db';
 import { UserError } from 'n8n-workflow';
 import z from 'zod';
 
-import type { ToolDefinition } from '../mcp.types';
-import { assertManualExecutable } from './manual-execution.utils';
-
+import type { TestWebhooks } from '@/webhooks/test-webhooks';
 import type { WorkflowExecutionService } from '@/workflows/workflow-execution.service';
 import type { WorkflowFinderService } from '@/workflows/workflow-finder.service';
 import type { WorkflowRequest } from '@/workflows/workflow.request';
-import type { TestWebhooks } from '@/webhooks/test-webhooks';
+
+import type { ToolDefinition } from '../mcp.types';
+import { isManuallyExecutable } from './manual-execution.utils';
+
+// TODO: Move to constants
+const MANUAL_EXECUTION_ERROR_MESSAGE =
+	'This workflow requires waiting for an external trigger (for example a webhook) before it can run. Manual execution via MCP is not possible.';
 
 const inputSchema = {
 	workflowId: z.string().describe('The ID of the workflow to execute'),
@@ -18,6 +22,7 @@ const outputSchema = {
 	success: z.boolean(),
 	executionId: z.string().nullable().optional(),
 	waitingForWebhook: z.boolean().optional(),
+	message: z.string().optional(),
 } satisfies z.ZodRawShape;
 
 export const createExecuteWorkflowTool = (
@@ -41,7 +46,20 @@ export const createExecuteWorkflowTool = (
 			throw new UserError('Workflow not found');
 		}
 
-		await assertManualExecutable({ user, workflow, testWebhooks });
+		const canManuallyExecute = await isManuallyExecutable({ user, workflow, testWebhooks });
+
+		// TODO: Refactor
+		if (!canManuallyExecute) {
+			const content = {
+				success: false,
+				waitingForWebhook: true,
+				message: MANUAL_EXECUTION_ERROR_MESSAGE,
+			};
+			return {
+				content: [{ type: 'text', text: JSON.stringify(content) }],
+				structuredContent: content,
+			};
+		}
 
 		const manualRunPayload: WorkflowRequest.ManualRunPayload = {
 			workflowData: workflow,
