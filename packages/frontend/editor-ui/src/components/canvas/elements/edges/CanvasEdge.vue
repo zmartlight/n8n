@@ -85,6 +85,8 @@ const edgeClasses = computed(() => ({
 	'bring-to-front': props.bringToFront,
 }));
 
+const edgeMarkerEnd = computed(() => (isMainConnection.value ? props.markerEnd : undefined));
+
 const edgeToolbarStyle = computed(() => ({
 	transform: `translate(-50%, -50%) translate(${labelPosition.value[0]}px, ${labelPosition.value[1]}px)`,
 	...(delayedHovered.value ? { zIndex: 1 } : {}),
@@ -147,7 +149,7 @@ function onEdgeLabelMouseLeave() {
 			:class="edgeClasses"
 			:style="edgeStyle"
 			:path="segment[0]"
-			:marker-end="markerEnd"
+			:marker-end="edgeMarkerEnd"
 			:interaction-width="40"
 		/>
 	</g>
