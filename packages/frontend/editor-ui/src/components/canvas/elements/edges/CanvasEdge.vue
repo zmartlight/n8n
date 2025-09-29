@@ -201,11 +201,6 @@ function onEdgeLabelMouseLeave() {
 	transform: scale(var(--canvas-zoom-compensation-factor, 1)) translate(0, var(--label-translate-y));
 	color: var(--color-text-base);
 	font-size: var(--font-size-xs);
-	background-color: hsla(
-		var(--color-canvas-background-h),
-		var(--color-canvas-background-s),
-		var(--color-canvas-background-l),
-		0.85
-	);
+	background-color: var(--canvas--background);
 }
 </style>
