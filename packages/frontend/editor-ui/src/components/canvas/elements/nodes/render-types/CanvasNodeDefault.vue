@@ -214,6 +214,11 @@ function onActivate(event: MouseEvent) {
 		.statusIcons {
 			right: unset;
 		}
+
+		&.running::after,
+		&.waiting::after {
+			border-radius: 50%;
+		}
 	}
 
 	&.configurable {
@@ -306,7 +311,7 @@ function onActivate(event: MouseEvent) {
 	content: '';
 	position: absolute;
 	inset: -4px;
-	border-radius: 8px;
+	border-radius: var(--border-radius-large);
 	z-index: -1;
 	background: conic-gradient(
 		from var(--angle),
