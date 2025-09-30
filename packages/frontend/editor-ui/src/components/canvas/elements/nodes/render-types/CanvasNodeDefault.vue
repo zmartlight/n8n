@@ -310,7 +310,7 @@ function onActivate(event: MouseEvent) {
 .waiting::after {
 	content: '';
 	position: absolute;
-	inset: -4px;
+	inset: -3px;
 	border-radius: var(--border-radius-large);
 	z-index: -1;
 	background: conic-gradient(
@@ -324,13 +324,22 @@ function onActivate(event: MouseEvent) {
 	);
 	background: conic-gradient(
 		from var(--angle),
-		#ff6d5a,
-		#ff6d5a 20%,
+		rgba(255, 109, 90, 1),
+		rgba(255, 109, 90, 1) 20%,
+		rgba(255, 109, 90, 0.2) 35%,
+		rgba(255, 109, 90, 0.2) 65%,
+		rgba(255, 109, 90, 1) 90%,
+		rgba(255, 109, 90, 1)
+	);
+	/* background: conic-gradient(
+		from var(--angle),
+		rgba(0, 0, 0, 0.2),
+		rgba(0, 0, 0, 0.2) 20%,
 		transparent 35%,
 		transparent 65%,
-		#ff6d5a 90%,
-		#ff6d5a
-	);
+		rgba(0, 0, 0, 0.2) 90%,
+		rgba(0, 0, 0, 0.2)
+	); */
 }
 
 .running::after {
