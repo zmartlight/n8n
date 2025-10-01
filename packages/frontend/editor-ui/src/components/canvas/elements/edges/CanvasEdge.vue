@@ -182,7 +182,7 @@ function onEdgeLabelMouseLeave() {
 		stroke 0.3s ease,
 		fill 0.3s ease;
 	stroke: var(--canvas-edge-color, v-bind(edgeStroke));
-	stroke-width: calc(2 * var(--canvas-zoom-compensation-factor, 1));
+	stroke-width: calc(1.5 * var(--canvas-zoom-compensation-factor, 1));
 	stroke-linecap: square;
 }
 

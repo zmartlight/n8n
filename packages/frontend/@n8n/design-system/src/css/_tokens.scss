@@ -574,7 +574,7 @@
 	);
 
 	// general canvas elements
-	--color--connection-line: var(--p-gray-320);
+	--color--connection-line: hsl(var(--h-gray), 18%, 74%);
 	--canvas--background: hsl(var(--h-gray), 25%, 97%);
 	--canvas-node--border-color: rgba(0, 0, 0, 0.12);
 	--node-handle--background: var(--p-gray-420);
