@@ -5,8 +5,13 @@ import { computed, useCssModule } from 'vue';
 
 const $style = useCssModule();
 
-const { executionStatus, hasPinnedData } = useCanvasNode();
+const { render, executionStatus, hasPinnedData } = useCanvasNode();
 const { label, isRequired } = useCanvasNodeHandle();
+
+const isDirty = computed(() => {
+	const renderOptions = render.value.options as any;
+	return renderOptions.dirtiness !== undefined;
+});
 
 const classes = computed(() => ({
 	'canvas-node-handle-main-input': true,
@@ -23,6 +28,7 @@ const handleClasses = 'target';
 			:handle-classes="handleClasses"
 			:execution-status="executionStatus"
 			:has-pinned-data="hasPinnedData"
+			:is-dirty="isDirty"
 		/>
 	</div>
 </template>

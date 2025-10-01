@@ -6,11 +6,13 @@ const props = withDefaults(
 		handleClasses?: string;
 		executionStatus?: string;
 		hasPinnedData?: boolean;
+		isDirty?: boolean;
 	}>(),
 	{
 		handleClasses: undefined,
 		executionStatus: undefined,
 		hasPinnedData: false,
+		isDirty: false,
 	},
 );
 
@@ -20,6 +22,9 @@ const statusClasses = computed(() => {
 	}
 	if (['error', 'crashed'].includes(props.executionStatus || '')) {
 		return 'error';
+	}
+	if (props.isDirty) {
+		return 'dirty';
 	}
 	if (props.executionStatus === 'success') {
 		return 'success';
@@ -65,6 +70,14 @@ const statusClasses = computed(() => {
 
 		&:hover {
 			background: var(--color-danger-shade-1);
+		}
+	}
+
+	&.dirty {
+		background: var(--color-warning);
+
+		&:hover {
+			background: var(--color-warning-shade-1);
 		}
 	}
 

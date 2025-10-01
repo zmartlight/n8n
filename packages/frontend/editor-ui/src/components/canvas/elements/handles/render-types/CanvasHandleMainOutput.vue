@@ -15,6 +15,8 @@ const i18n = useI18n();
 const { render, executionStatus, hasPinnedData } = useCanvasNode();
 const { label, isConnected, isConnecting, isReadOnly, isRequired, runData } = useCanvasNodeHandle();
 
+const isDirty = computed(() => renderOptions.value.dirtiness !== undefined);
+
 const handleClasses = 'source';
 
 const classes = computed(() => ({
@@ -82,6 +84,7 @@ function onClickAdd() {
 			:handle-classes="handleClasses"
 			:execution-status="executionStatus"
 			:has-pinned-data="hasPinnedData"
+			:is-dirty="isDirty"
 		/>
 		<Transition name="canvas-node-handle-main-output">
 			<CanvasHandlePlus
