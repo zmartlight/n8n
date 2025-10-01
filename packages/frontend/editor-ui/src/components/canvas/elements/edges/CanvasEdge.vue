@@ -72,7 +72,7 @@ const edgeColor = computed(() => {
 
 const edgeStyle = computed(() => ({
 	...props.style,
-	...(isMainConnection.value ? {} : { strokeDasharray: '8,8' }),
+	...(status.value === 'pinned' ? { strokeDasharray: '8,8' } : {}),
 }));
 
 const edgeStroke = computed(() =>

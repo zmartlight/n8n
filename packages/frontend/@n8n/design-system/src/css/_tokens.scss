@@ -89,8 +89,8 @@
 	--color-canvas-background-h: var(--h-gray); // Used for connectors labels background
 	--color-canvas-background-s: 47%;
 	--color-canvas-background-l: 99%;
-	--color-canvas-dot: var(--p-gray-320);
-	--color-canvas-read-only-line: var(--p-gray-030);
+	--color-canvas-dot: var(--p-gray-420);
+	--color-canvas-read-only-line: var(--p-gray-040);
 	--color-canvas-selected: var(--p-gray-070);
 	--color-canvas-selected-transparent: hsla(var(--h-gray), 47%, 30%, 0.1);
 
@@ -575,7 +575,7 @@
 
 	// general canvas elements
 	--color--connection-line: var(--p-gray-320);
-	--canvas--background: hsl(var(--h-gray), 20%, 96%);
+	--canvas--background: hsl(var(--h-gray), 25%, 97%);
 	--canvas-node--border-color: rgba(0, 0, 0, 0.12);
 	--node-handle--background: var(--p-gray-420);
 
