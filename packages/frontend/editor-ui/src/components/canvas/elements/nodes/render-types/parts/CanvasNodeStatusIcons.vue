@@ -6,7 +6,6 @@ import { useCanvasNode } from '@/composables/useCanvasNode';
 import { useI18n } from '@n8n/i18n';
 import { CanvasNodeDirtiness, CanvasNodeRenderType } from '@/types';
 import { N8nTooltip } from '@n8n/design-system';
-import { useCanvas } from '@/composables/useCanvas';
 
 const {
 	size = 'large',
@@ -29,28 +28,16 @@ const {
 	hasExecutionErrors,
 	hasValidationErrors,
 	executionStatus,
-	executionWaiting,
-	executionWaitingForNext,
-	executionRunning,
 	hasRunData,
 	runDataIterations,
 	isDisabled,
 	render,
 } = useCanvasNode();
-const { isExecuting } = useCanvas();
 
 const hideNodeIssues = computed(() => false); // @TODO Implement this
 const dirtiness = computed(() =>
 	render.value.type === CanvasNodeRenderType.Default ? render.value.options.dirtiness : undefined,
 );
-
-const isNodeExecuting = computed(() => {
-	if (!isExecuting.value) return false;
-
-	return (
-		executionRunning.value || executionWaitingForNext.value || executionStatus.value === 'running' // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing
-	);
-});
 const commonClasses = computed(() => [
 	$style.status,
 	spinnerScrim ? $style.spinnerScrim : '',
