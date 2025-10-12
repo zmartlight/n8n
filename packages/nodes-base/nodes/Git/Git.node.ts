@@ -5,10 +5,11 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, assertParamIsBoolean, assertParamIsString } from 'n8n-workflow';
+import { NodeConnectionTypes } from 'n8n-workflow';
 import type { LogOptions, SimpleGit, SimpleGitOptions } from 'simple-git';
 import simpleGit from 'simple-git';
 import { URL } from 'url';
+import { z } from 'zod';
 
 import {
 	addConfigFields,
@@ -282,7 +283,26 @@ export class Git implements INodeType {
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			try {
 				const repositoryPath = this.getNodeParameter('repositoryPath', itemIndex, '') as string;
-				const options = this.getNodeParameter('options', itemIndex, {});
+				const options = this.getNodeParameter(
+					'options',
+					itemIndex,
+					z
+						.object({
+							mode: z.string(),
+							branch: z.string(),
+							file: z.string(),
+							files: z.string(),
+							pathsToAdd: z.string(),
+							repository: z.string(),
+							targetRepository: z.string(),
+							createBranch: z.boolean(),
+							setUpstream: z.boolean(),
+							startPoint: z.string(),
+							remoteName: z.string(),
+							force: z.boolean(),
+						})
+						.partial(),
+				);
 
 				if (operation === 'clone') {
 					// Create repository folder if it does not exist
@@ -378,7 +398,6 @@ export class Git implements INodeType {
 					const message = this.getNodeParameter('message', itemIndex, '') as string;
 					const branch = options.branch;
 					if (branch !== undefined && branch !== '') {
-						assertParamIsString('branch', branch, this.getNode());
 						await checkoutBranch(git, {
 							branchName: branch,
 							setUpstream: true,
@@ -461,7 +480,6 @@ export class Git implements INodeType {
 
 					const branch = options.branch;
 					if (branch !== undefined && branch !== '') {
-						assertParamIsString('branch', branch, this.getNode());
 						await checkoutBranch(git, {
 							branchName: branch,
 							createBranch: false,
@@ -559,32 +577,13 @@ export class Git implements INodeType {
 					//         switchBranch
 					// ----------------------------------
 
-					const branchName = this.getNodeParameter('branchName', itemIndex);
-					assertParamIsString('branchName', branchName, this.getNode());
+					const branchName = this.getNodeParameter('branchName', itemIndex, z.string());
 
 					const createBranch = options.createBranch;
-					if (createBranch !== undefined) {
-						assertParamIsBoolean('createBranch', createBranch, this.getNode());
-					}
-					const remoteName =
-						typeof options.remoteName === 'string' && options.remoteName
-							? options.remoteName
-							: 'origin';
-
+					const remoteName = options.remoteName ?? 'origin';
 					const startPoint = options.startPoint;
-					if (startPoint !== undefined) {
-						assertParamIsString('startPoint', startPoint, this.getNode());
-					}
-
 					const setUpstream = options.setUpstream;
-					if (setUpstream !== undefined) {
-						assertParamIsBoolean('setUpstream', setUpstream, this.getNode());
-					}
-
 					const force = options.force;
-					if (force !== undefined) {
-						assertParamIsBoolean('force', force, this.getNode());
-					}
 
 					await checkoutBranch(git, {
 						branchName,

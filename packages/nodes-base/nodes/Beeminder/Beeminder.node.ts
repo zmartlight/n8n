@@ -1,4 +1,5 @@
 import moment from 'moment-timezone';
+import { z } from 'zod';
 import {
 	type IExecuteFunctions,
 	type JsonObject,
@@ -13,10 +14,8 @@ import {
 	assertParamIsString,
 	validateNodeParameters,
 	assertParamIsNumber,
-	assertParamIsArray,
 } from 'n8n-workflow';
 
-import type { Datapoint } from './Beeminder.node.functions';
 import {
 	createDatapoint,
 	deleteDatapoint,
@@ -1091,20 +1090,20 @@ async function executeDatapointCreate(
 	const value = context.getNodeParameter('value', itemIndex);
 	assertParamIsNumber('value', value, context.getNode());
 
-	const options = context.getNodeParameter('additionalFields', itemIndex);
+	const options = context.getNodeParameter(
+		'additionalFields',
+		itemIndex,
+		z
+			.object({
+				comment: z.string(),
+				timestamp: z.number(),
+				requestid: z.string(),
+			})
+			.partial(),
+	);
 	if (options.timestamp) {
 		options.timestamp = moment.tz(options.timestamp, timezone).unix();
 	}
-
-	validateNodeParameters(
-		options,
-		{
-			comment: { type: 'string' },
-			timestamp: { type: 'number' },
-			requestid: { type: 'string' },
-		},
-		context.getNode(),
-	);
 
 	const data = {
 		value,
@@ -1121,15 +1120,14 @@ async function executeDatapointGetAll(
 	itemIndex: number,
 ): Promise<JsonObject[]> {
 	const returnAll = context.getNodeParameter('returnAll', itemIndex);
-	const options = context.getNodeParameter('options', itemIndex);
-	validateNodeParameters(
-		options,
-		{
-			sort: { type: 'string' },
-			page: { type: 'number' },
-			per: { type: 'number' },
-		},
-		context.getNode(),
+	const options = context.getNodeParameter(
+		'options',
+		itemIndex,
+		z.object({
+			sort: z.string(),
+			page: z.number(),
+			per: z.number(),
+		}),
 	);
 
 	const data = {
@@ -1192,20 +1190,18 @@ async function executeDatapointCreateAll(
 	goalName: string,
 	itemIndex: number,
 ): Promise<JsonObject[]> {
-	const datapoints = context.getNodeParameter('datapoints', itemIndex);
-	const parsedDatapoints = typeof datapoints === 'string' ? jsonParse(datapoints) : datapoints;
-	assertParamIsArray<Datapoint>(
+	const dataPointsSchema = z.array(z.object({ value: z.number(), timestamp: z.number() }));
+	const datapoints = context.getNodeParameter(
 		'datapoints',
-		parsedDatapoints,
-		(val): val is Datapoint => typeof val === 'object' && val !== null && 'value' in val,
-		context.getNode(),
+		itemIndex,
+		dataPointsSchema
+			.or(z.string())
+			.transform((value) =>
+				typeof value === 'string' ? dataPointsSchema.parse(jsonParse(value)) : value,
+			),
 	);
 
-	const data = {
-		goalName,
-		datapoints: parsedDatapoints,
-	};
-	return await createAllDatapoints.call(context, data);
+	return await createAllDatapoints.call(context, { goalName, datapoints });
 }
 
 async function executeDatapointGet(
@@ -1253,17 +1249,13 @@ async function executeChargeOperations(
 	itemIndex: number,
 ): Promise<JsonObject[]> {
 	if (operation === 'create') {
-		const amount = context.getNodeParameter('amount', itemIndex);
-		assertParamIsNumber('amount', amount, context.getNode());
-		const options = context.getNodeParameter('additionalFields', itemIndex);
-		validateNodeParameters(
-			options,
-			{
-				note: { type: 'string' },
-				dryrun: { type: 'boolean' },
-			},
-			context.getNode(),
+		const amount = context.getNodeParameter('amount', itemIndex, z.number());
+		const options = context.getNodeParameter(
+			'additionalFields',
+			itemIndex,
+			z.object({ note: z.string(), dryrun: z.boolean() }),
 		);
+
 		const data = {
 			amount,
 			...options,
@@ -1349,14 +1341,12 @@ async function executeGoalGetAll(
 	context: IExecuteFunctions,
 	itemIndex: number,
 ): Promise<JsonObject[]> {
-	const options = context.getNodeParameter('additionalFields', itemIndex);
-	validateNodeParameters(
-		options,
-		{
-			emaciated: { type: 'boolean' },
-		},
-		context.getNode(),
+	const options = context.getNodeParameter(
+		'additionalFields',
+		itemIndex,
+		z.object({ emaciated: z.boolean() }),
 	);
+
 	const data = { ...options };
 
 	return await getAllGoals.call(context, data);
@@ -1366,14 +1356,12 @@ async function executeGoalGetArchived(
 	context: IExecuteFunctions,
 	itemIndex: number,
 ): Promise<JsonObject[]> {
-	const options = context.getNodeParameter('additionalFields', itemIndex);
-	validateNodeParameters(
-		options,
-		{
-			emaciated: { type: 'boolean' },
-		},
-		context.getNode(),
+	const options = context.getNodeParameter(
+		'additionalFields',
+		itemIndex,
+		z.object({ emaciated: z.boolean() }),
 	);
+
 	const data = { ...options };
 
 	return await getArchivedGoals.call(context, data);

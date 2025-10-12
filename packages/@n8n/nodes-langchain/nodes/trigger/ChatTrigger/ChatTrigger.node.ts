@@ -1,13 +1,6 @@
 import type { BaseChatMemory } from '@langchain/community/memory/chat_memory';
 import pick from 'lodash/pick';
-import {
-	Node,
-	NodeConnectionTypes,
-	NodeOperationError,
-	assertParamIsBoolean,
-	validateNodeParameters,
-	assertParamIsString,
-} from 'n8n-workflow';
+import { Node, NodeConnectionTypes, NodeOperationError, assertParamIsString } from 'n8n-workflow';
 import type {
 	IDataObject,
 	IWebhookFunctions,
@@ -18,21 +11,21 @@ import type {
 	IBinaryData,
 	INodeProperties,
 } from 'n8n-workflow';
+import { z } from 'zod';
 
 import { cssVariables } from './constants';
 import { validateAuth } from './GenericFunctions';
 import { createPage } from './templates';
-import { assertValidLoadPreviousSessionOption } from './types';
 
 const CHAT_TRIGGER_PATH_IDENTIFIER = 'chat';
-const allowFileUploadsOption: INodeProperties = {
+const allowFileUploadsOption = {
 	displayName: 'Allow File Uploads',
 	name: 'allowFileUploads',
 	type: 'boolean',
 	default: false,
 	description: 'Whether to allow file uploads in the chat',
-};
-const allowedFileMimeTypeOption: INodeProperties = {
+} as const satisfies INodeProperties;
+const allowedFileMimeTypeOption = {
 	displayName: 'Allowed File Mime Types',
 	name: 'allowedFilesMimeTypes',
 	type: 'string',
@@ -40,7 +33,7 @@ const allowedFileMimeTypeOption: INodeProperties = {
 	placeholder: 'e.g. image/*, text/*, application/pdf',
 	description:
 		'Allowed file types for upload. Comma-separated list of <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types" target="_blank">MIME types</a>.',
-};
+} as const satisfies INodeProperties;
 
 const respondToWebhookResponseMode = {
 	name: "Using 'Respond to Webhook' Node",
@@ -67,7 +60,7 @@ const respondNodesResponseMode = {
 		"Send responses to the chat by using 'Respond to Chat' or 'Respond to Webhook' nodes",
 };
 
-const commonOptionsFields: INodeProperties[] = [
+const commonOptionsFields = [
 	// CORS parameters are only valid for when chat is used in hosted or webhook mode
 	{
 		displayName: 'Allowed Origins (CORS)',
@@ -210,7 +203,7 @@ ${cssVariables}
 `.trim(),
 		description: 'Override default styling of the public chat interface with CSS',
 	},
-];
+] as const satisfies INodeProperties[];
 
 export class ChatTrigger extends Node {
 	description: INodeTypeDescription = {
@@ -538,7 +531,7 @@ export class ChatTrigger extends Node {
 			for (const fileKey of Object.keys(files)) {
 				const processedFiles: MultiPartFormData.File[] = [];
 				if (Array.isArray(files[fileKey])) {
-					processedFiles.push(...files[fileKey]);
+					processedFiles.push.apply(processedFiles, files[fileKey]);
 				} else {
 					processedFiles.push(files[fileKey]);
 				}
@@ -586,8 +579,7 @@ export class ChatTrigger extends Node {
 	async webhook(ctx: IWebhookFunctions): Promise<IWebhookResponseData> {
 		const res = ctx.getResponseObject();
 
-		const isPublic = ctx.getNodeParameter('public', false);
-		assertParamIsBoolean('public', isPublic, ctx.getNode());
+		const isPublic = ctx.getNodeParameter('public', z.boolean().default(false));
 
 		const nodeMode = ctx.getNodeParameter('mode', 'hostedChat');
 		assertParamIsString('mode', nodeMode, ctx.getNode());
@@ -599,26 +591,25 @@ export class ChatTrigger extends Node {
 			};
 		}
 
-		const options = ctx.getNodeParameter('options', {});
-		validateNodeParameters(
-			options,
-			{
-				getStarted: { type: 'string' },
-				inputPlaceholder: { type: 'string' },
-				loadPreviousSession: { type: 'string' },
-				showWelcomeScreen: { type: 'boolean' },
-				subtitle: { type: 'string' },
-				title: { type: 'string' },
-				allowFileUploads: { type: 'boolean' },
-				allowedFilesMimeTypes: { type: 'string' },
-				customCss: { type: 'string' },
-				responseMode: { type: 'string' },
-			},
-			ctx.getNode(),
+		const options = ctx.getNodeParameter(
+			'options',
+			z
+				.object({
+					getStarted: z.string(),
+					inputPlaceholder: z.string(),
+					loadPreviousSession: z.enum(['notSupported', 'memory', 'manually']),
+					showWelcomeScreen: z.boolean(),
+					subtitle: z.string(),
+					title: z.string(),
+					allowFileUploads: z.boolean(),
+					allowedFilesMimeTypes: z.string(),
+					customCss: z.string(),
+					responseMode: z.string(),
+				})
+				.partial(),
 		);
 
 		const loadPreviousSession = options.loadPreviousSession;
-		assertValidLoadPreviousSessionOption(loadPreviousSession, ctx.getNode());
 
 		const enableStreaming = options.responseMode === 'streaming';
 
@@ -653,8 +644,7 @@ export class ChatTrigger extends Node {
 					| 'none'
 					| 'basicAuth'
 					| 'n8nUserAuth';
-				const initialMessagesRaw = ctx.getNodeParameter('initialMessages', '');
-				assertParamIsString('initialMessage', initialMessagesRaw, ctx.getNode());
+				const initialMessagesRaw = ctx.getNodeParameter('initialMessages', z.string());
 				const instanceId = ctx.getInstanceId();
 
 				const i18nConfig: Record<string, string> = {};

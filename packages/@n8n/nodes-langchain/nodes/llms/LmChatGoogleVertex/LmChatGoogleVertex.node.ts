@@ -2,6 +2,7 @@ import { ProjectsClient } from '@google-cloud/resource-manager';
 import type { GoogleAISafetySetting } from '@langchain/google-common';
 import { ChatVertexAI, type ChatVertexAIInput } from '@langchain/google-vertexai';
 import { formatPrivateKey } from 'n8n-nodes-base/dist/utils/utilities';
+import { z } from 'zod';
 import {
 	NodeConnectionTypes,
 	type INodeType,
@@ -11,7 +12,7 @@ import {
 	type ILoadOptionsFunctions,
 	type JsonObject,
 	NodeOperationError,
-	validateNodeParameters,
+	type INodeProperties,
 } from 'n8n-workflow';
 
 import { getConnectionHintNoticeField } from '@utils/sharedFields';
@@ -20,6 +21,45 @@ import { makeErrorFromStatus } from './error-handling';
 import { getAdditionalOptions } from '../gemini-common/additional-options';
 import { makeN8nLlmFailedAttemptHandler } from '../n8nLlmFailedAttemptHandler';
 import { N8nLlmTracing } from '../N8nLlmTracing';
+import type { TypedNodeProperties } from 'types/typed-node-properties';
+
+const properties = [
+	getConnectionHintNoticeField([NodeConnectionTypes.AiChain, NodeConnectionTypes.AiAgent]),
+	{
+		displayName: 'Project ID',
+		name: 'projectId',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		required: true,
+		description: 'Select or enter your Google Cloud project ID',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'gcpProjectsList',
+				},
+			},
+			{
+				displayName: 'ID',
+				name: 'id',
+				type: 'string',
+			},
+		],
+	},
+	{
+		displayName: 'Model Name',
+		name: 'modelName',
+		type: 'string',
+		description:
+			'The model which will generate the completion. <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models">Learn more</a>.',
+		default: 'gemini-2.5-flash',
+	},
+	getAdditionalOptions({ supportsThinkingBudget: true }),
+] as const satisfies INodeProperties[];
+
+type Typed = TypedNodeProperties<typeof properties>;
 
 export class LmChatGoogleVertex implements INodeType {
 	description: INodeTypeDescription = {
@@ -58,41 +98,7 @@ export class LmChatGoogleVertex implements INodeType {
 				required: true,
 			},
 		],
-		properties: [
-			getConnectionHintNoticeField([NodeConnectionTypes.AiChain, NodeConnectionTypes.AiAgent]),
-			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'resourceLocator',
-				default: { mode: 'list', value: '' },
-				required: true,
-				description: 'Select or enter your Google Cloud project ID',
-				modes: [
-					{
-						displayName: 'From List',
-						name: 'list',
-						type: 'list',
-						typeOptions: {
-							searchListMethod: 'gcpProjectsList',
-						},
-					},
-					{
-						displayName: 'ID',
-						name: 'id',
-						type: 'string',
-					},
-				],
-			},
-			{
-				displayName: 'Model Name',
-				name: 'modelName',
-				type: 'string',
-				description:
-					'The model which will generate the completion. <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models">Learn more</a>.',
-				default: 'gemini-2.5-flash',
-			},
-			getAdditionalOptions({ supportsThinkingBudget: true }),
-		],
+		properties,
 	};
 
 	methods = {
@@ -139,24 +145,16 @@ export class LmChatGoogleVertex implements INodeType {
 			extractValue: true,
 		}) as string;
 
-		const options = this.getNodeParameter('options', itemIndex, {
-			maxOutputTokens: 2048,
-			temperature: 0.4,
-			topK: 40,
-			topP: 0.9,
-		});
-
-		// Validate options parameter
-		validateNodeParameters(
-			options,
-			{
-				maxOutputTokens: { type: 'number', required: false },
-				temperature: { type: 'number', required: false },
-				topK: { type: 'number', required: false },
-				topP: { type: 'number', required: false },
-				thinkingBudget: { type: 'number', required: false },
-			},
-			this.getNode(),
+		const options = this.getNodeParameter(
+			'options',
+			itemIndex,
+			z.object({
+				maxOutputTokens: z.number().default(2048),
+				temperature: z.number().default(0.4),
+				topK: z.number().default(40),
+				topP: z.number().default(0.9),
+				thinkingBudget: z.number().optional(),
+			}),
 		);
 
 		const safetySettings = this.getNodeParameter(

@@ -6,7 +6,7 @@ import { harmCategories, harmThresholds } from './safety-options';
 export function getAdditionalOptions({
 	supportsThinkingBudget,
 }: { supportsThinkingBudget: boolean }) {
-	const baseOptions: INodeProperties = {
+	const baseOptions = {
 		displayName: 'Options',
 		name: 'options',
 		placeholder: 'Add Option',
@@ -87,7 +87,8 @@ export function getAdditionalOptions({
 				],
 			},
 		],
-	};
+	} as const satisfies INodeProperties;
+
 	// only supported in the new google genai SDK
 	if (supportsThinkingBudget) {
 		baseOptions.options?.push({

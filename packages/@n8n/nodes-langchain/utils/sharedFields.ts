@@ -122,9 +122,7 @@ const getAhref = (connectionType: { connection: string; locale: string }) =>
 		connectionType.connection,
 	)}'>${connectionType.locale}</a>`;
 
-export function getConnectionHintNoticeField(
-	connectionTypes: AllowedConnectionTypes[],
-): INodeProperties {
+export function getConnectionHintNoticeField(connectionTypes: AllowedConnectionTypes[]) {
 	const groupedConnections = new Map<string, string[]>();
 
 	// group connection types by their 'connection' value
@@ -183,5 +181,5 @@ export function getConnectionHintNoticeField(
 		typeOptions: {
 			containerClass: 'ndv-connection-hint-notice',
 		},
-	};
+	} as const satisfies INodeProperties;
 }

@@ -11,6 +11,7 @@ import type { Client as SSHClient } from 'ssh2';
 import type { Readable } from 'stream';
 import type { SecureContextOptions } from 'tls';
 import type { URLSearchParams } from 'url';
+import { type ZodType, type ZodTypeDef } from 'zod';
 
 import type { CODE_EXECUTION_MODES, CODE_LANGUAGES, LOG_LEVELS } from './constants';
 import type {
@@ -618,43 +619,63 @@ namespace ExecuteFunctions {
 		export type NodeParameter = 'additionalFields' | 'filters' | 'options' | 'updateFields';
 	}
 
-	export type GetNodeParameterFn = {
-		// @TECH_DEBT: Refactor to remove this barely used overload - N8N-5632
-		getNodeParameter<T extends { resource: string }>(
-			parameterName: 'resource',
-			itemIndex?: number,
-		): T['resource'];
+	export type GetNodeParameterFnFn = {
+		<T, Input>(
+			parameterName: string,
+			schema: ZodType<T, ZodTypeDef, Input>,
+			options?: IGetNodeParameterOptions,
+		): T;
+		(
+			parameterName: string,
+			fallbackValue?: any,
+			options?: IGetNodeParameterOptions,
+		): NodeParameterValueType | object;
+	};
 
-		getNodeParameter(
+	export type GetNodeParameterFnFnWithItemIndex = {
+		// @TECH_DEBT: Refactor to remove this barely used overload - N8N-5632
+		<T extends { resource: string }>(parameterName: 'resource', itemIndex?: number): T['resource'];
+
+		<T, Input>(
+			parameterName: string,
+			itemIndex: number,
+			schema: ZodType<T, ZodTypeDef, Input>,
+			options?: IGetNodeParameterOptions,
+		): T;
+		(
 			parameterName: StringReturning.NodeParameter,
 			itemIndex: number,
 			fallbackValue?: string,
 			options?: IGetNodeParameterOptions,
 		): string;
-		getNodeParameter(
+		(
 			parameterName: RecordReturning.NodeParameter,
 			itemIndex: number,
 			fallbackValue?: IDataObject,
 			options?: IGetNodeParameterOptions,
 		): IDataObject;
-		getNodeParameter(
+		(
 			parameterName: BooleanReturning.NodeParameter,
 			itemIndex: number,
 			fallbackValue?: boolean,
 			options?: IGetNodeParameterOptions,
 		): boolean;
-		getNodeParameter(
+		(
 			parameterName: NumberReturning.NodeParameter,
 			itemIndex: number,
 			fallbackValue?: number,
 			options?: IGetNodeParameterOptions,
 		): number;
-		getNodeParameter(
+		(
 			parameterName: string,
 			itemIndex: number,
 			fallbackValue?: any,
 			options?: IGetNodeParameterOptions,
 		): NodeParameterValueType | object;
+	};
+
+	export type GetNodeParameterFn = {
+		getNodeParameter: GetNodeParameterFnFnWithItemIndex;
 	};
 }
 
@@ -1032,11 +1053,7 @@ export type IExecuteFunctions = ExecuteFunctions.GetNodeParameterFn &
 export interface IExecuteSingleFunctions extends BaseExecutionFunctions {
 	getInputData(inputIndex?: number, connectionType?: NodeConnectionType): INodeExecutionData;
 	getItemIndex(): number;
-	getNodeParameter(
-		parameterName: string,
-		fallbackValue?: any,
-		options?: IGetNodeParameterOptions,
-	): NodeParameterValueType | object;
+	getNodeParameter: ExecuteFunctions.GetNodeParameterFnFn;
 
 	helpers: RequestHelperFunctions &
 		BaseHelperFunctions &
@@ -1082,11 +1099,7 @@ export interface IExecutePaginationFunctions extends IExecuteSingleFunctions {
 }
 
 export interface ILoadOptionsFunctions extends FunctionsBase {
-	getNodeParameter(
-		parameterName: string,
-		fallbackValue?: any,
-		options?: IGetNodeParameterOptions,
-	): NodeParameterValueType | object;
+	getNodeParameter: ExecuteFunctions.GetNodeParameterFnFn;
 	getCurrentNodeParameter(
 		parameterName: string,
 		options?: IGetNodeParameterOptions,
@@ -1117,11 +1130,7 @@ export interface IPollFunctions
 		donePromise?: IDeferredPromise<IRun>,
 	): void;
 	__emitError(error: Error, responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>): void;
-	getNodeParameter(
-		parameterName: string,
-		fallbackValue?: any,
-		options?: IGetNodeParameterOptions,
-	): NodeParameterValueType | object;
+	getNodeParameter: ExecuteFunctions.GetNodeParameterFnFn;
 	helpers: RequestHelperFunctions &
 		BaseHelperFunctions &
 		BinaryHelperFunctions &
@@ -1136,11 +1145,7 @@ export interface ITriggerFunctions
 		donePromise?: IDeferredPromise<IRun>,
 	): void;
 	emitError(error: Error, responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>): void;
-	getNodeParameter(
-		parameterName: string,
-		fallbackValue?: any,
-		options?: IGetNodeParameterOptions,
-	): NodeParameterValueType | object;
+	getNodeParameter: ExecuteFunctions.GetNodeParameterFnFn;
 	helpers: RequestHelperFunctions &
 		BaseHelperFunctions &
 		BinaryHelperFunctions &
@@ -1153,11 +1158,7 @@ export interface IHookFunctions
 	getWebhookName(): string;
 	getWebhookDescription(name: WebhookType): IWebhookDescription | undefined;
 	getNodeWebhookUrl: (name: WebhookType) => string | undefined;
-	getNodeParameter(
-		parameterName: string,
-		fallbackValue?: any,
-		options?: IGetNodeParameterOptions,
-	): NodeParameterValueType | object;
+	getNodeParameter: ExecuteFunctions.GetNodeParameterFnFn;
 	helpers: RequestHelperFunctions;
 }
 
@@ -1169,11 +1170,7 @@ export interface IWebhookFunctions extends FunctionsBaseWithRequiredKeys<'getMod
 		itemIndex: number,
 		inputIndex?: number,
 	): Promise<unknown>;
-	getNodeParameter(
-		parameterName: string,
-		fallbackValue?: any,
-		options?: IGetNodeParameterOptions,
-	): NodeParameterValueType | object;
+	getNodeParameter: ExecuteFunctions.GetNodeParameterFnFn;
 	getNodeWebhookUrl: (name: WebhookType) => string | undefined;
 	evaluateExpression(expression: string, itemIndex?: number): NodeParameterValueType;
 	getParamsData(): object;
