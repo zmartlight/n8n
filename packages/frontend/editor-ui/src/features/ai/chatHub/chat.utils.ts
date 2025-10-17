@@ -3,8 +3,9 @@ import {
 	type ChatHubConversationModel,
 	type ChatModelsResponse,
 	type ChatHubSessionDto,
+	type ChatMessageId,
 } from '@n8n/api-types';
-import type { GroupedConversations } from './chat.types';
+import type { ChatMessage, GroupedConversations, GroupedMessages } from './chat.types';
 
 export function findOneFromModelsResponse(
 	response: ChatModelsResponse,
@@ -73,4 +74,107 @@ export function groupConversationsByDate(sessions: ChatHubSessionDto[]): Grouped
 				]
 			: [];
 	});
+}
+
+export function computeActiveChain(
+	messages: Record<ChatMessageId, ChatMessage>,
+	responsesByMessageId: GroupedMessages,
+	messageId: ChatMessageId | null,
+) {
+	const chain: ChatMessage[] = [];
+	const messageList = Object.values(messages);
+
+	const navigateFrom =
+		messageId && messages[messageId]
+			? messageId
+			: messageList
+					.sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)) // TODO: Do we need 'state' column at all?
+					.pop()?.id;
+
+	if (!navigateFrom) {
+		return chain;
+	}
+
+	let id: ChatMessageId | undefined;
+
+	// Find the most recent descendant message starting from `navigateFrom`...
+	const stack = [navigateFrom];
+	let latest: ChatMessageId | null = null;
+
+	while ((id = stack.pop())) {
+		const message = messages[id];
+
+		if (!latest || message.createdAt > messages[latest].createdAt) {
+			latest = id;
+		}
+
+		for (const responseId of responsesByMessageId.get(id) ?? []) {
+			stack.push(responseId);
+		}
+	}
+
+	if (!latest) {
+		return chain;
+	}
+
+	// ...and then walk back to the root following previousMessageId links
+	let current: ChatMessageId | null = latest;
+	const visited = new Set<ChatMessageId>();
+
+	while (current && !visited.has(current)) {
+		const m: ChatMessage | undefined = messages[current];
+
+		if (m) {
+			chain.unshift(m);
+			visited.add(current);
+			current = m.previousMessageId ?? null;
+		}
+	}
+
+	return chain;
+}
+
+function sortByRunThenTime(a: ChatMessage, b: ChatMessage) {
+	// TODO: Disabled for now, messages retried don't get this at the FE before reload
+	// TODO: Do we even need runIndex at all?
+	// if (a.runIndex !== b.runIndex) {
+	// 	return a.runIndex - b.runIndex;
+	// }
+
+	if (a.createdAt !== b.createdAt) {
+		return a.createdAt < b.createdAt ? -1 : 1;
+	}
+
+	return a.id < b.id ? -1 : 1;
+}
+
+export function computeMessagesByPreviousId(
+	messages: Partial<Record<ChatMessageId, ChatMessage>>,
+): GroupedMessages {
+	const computeMessagesByPreviousId = new Map<ChatMessageId | null, ChatMessageId[]>();
+
+	for (const message of Object.values(messages)) {
+		if (message) {
+			const key = message?.previousMessageId ?? null;
+
+			const entry = computeMessagesByPreviousId.get(key) ?? [];
+
+			entry.push(message.id);
+
+			computeMessagesByPreviousId.set(key, entry);
+		}
+	}
+
+	// Sort all arrays by runIndex and createdAt
+	for (const [key, messageIds] of computeMessagesByPreviousId) {
+		computeMessagesByPreviousId.set(
+			key,
+			messageIds
+				.map((id) => messages[id]!)
+				.sort(sortByRunThenTime)
+				.map((m) => m.id),
+		);
+	}
+
+	return computeMessagesByPreviousId;
 }

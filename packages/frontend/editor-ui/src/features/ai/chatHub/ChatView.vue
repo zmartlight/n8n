@@ -4,7 +4,11 @@ import {
 	LOCAL_STORAGE_CHAT_HUB_CREDENTIALS,
 	LOCAL_STORAGE_CHAT_HUB_SELECTED_MODEL,
 } from '@/constants';
-import { findOneFromModelsResponse } from '@/features/ai/chatHub/chat.utils';
+import {
+	computeActiveChain,
+	findOneFromModelsResponse,
+	computeMessagesByPreviousId,
+} from '@/features/ai/chatHub/chat.utils';
 import ChatConversationHeader from '@/features/ai/chatHub/components/ChatConversationHeader.vue';
 import ChatMessage from '@/features/ai/chatHub/components/ChatMessage.vue';
 import ChatPrompt from '@/features/ai/chatHub/components/ChatPrompt.vue';
@@ -27,7 +31,7 @@ import {
 } from '@n8n/api-types';
 import { N8nIconButton, N8nScrollArea } from '@n8n/design-system';
 import { useLocalStorage, useMediaQuery, useScroll } from '@vueuse/core';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidV4 } from 'uuid';
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useChatStore } from './chat.store';
@@ -45,7 +49,7 @@ const documentTitle = useDocumentTitle();
 
 const inputRef = useTemplateRef('inputRef');
 const sessionId = computed<string>(() =>
-	typeof route.params.id === 'string' ? route.params.id : uuidv4(),
+	typeof route.params.id === 'string' ? route.params.id : uuidV4(),
 );
 const isNewSession = computed(() => sessionId.value !== route.params.id);
 const scrollableRef = useTemplateRef('scrollable');
@@ -56,6 +60,7 @@ const currentConversation = computed(() =>
 		: undefined,
 );
 const currentConversationTitle = computed(() => currentConversation.value?.title);
+const selectedAlternative = ref<ChatMessageId | null>(null);
 
 const { arrivedState } = useScroll(scrollContainerRef, { throttle: 100, offset: { bottom: 100 } });
 
@@ -115,7 +120,16 @@ const mergedCredentials = computed(() => ({
 	...selectedCredentials.value,
 }));
 
-const chatMessages = computed(() => chatStore.getActiveMessages(sessionId.value));
+const messagesByPreviousId = computed(() =>
+	computeMessagesByPreviousId(chatStore.conversationsBySession[sessionId.value]?.messages ?? {}),
+);
+const chatMessages = computed(() =>
+	computeActiveChain(
+		chatStore.conversationsBySession[sessionId.value]?.messages ?? {},
+		messagesByPreviousId.value,
+		selectedAlternative.value,
+	),
+);
 const isNewChat = computed(() => route.name === CHAT_VIEW);
 const inputPlaceholder = computed(() => {
 	if (!selectedModel.value) {
@@ -152,13 +166,12 @@ watch(
 		}
 
 		if (lastMessageId !== chatStore.streamingMessageId) {
+			// TODO: don't scroll when lastMessageId changed by switching between alternatives
 			scrollToBottom(chatStore.streamingMessageId !== undefined);
 			return;
 		}
 
-		const message = chatStore
-			.getActiveMessages(sessionId.value)
-			.find((message) => message.id === lastMessageId);
+		const message = chatStore.conversationsBySession[sessionId.value]?.messages[lastMessageId];
 
 		if (message?.previousMessageId) {
 			// Scroll to user's prompt when the message is being generated
@@ -188,7 +201,7 @@ watch(
 	async ([id, isNew]) => {
 		didSubmitInCurrentSession.value = false;
 
-		if (!isNew && !chatStore.getConversation(id)) {
+		if (!isNew && !chatStore.conversationsBySession[id]) {
 			try {
 				await chatStore.fetchMessages(id);
 			} catch (error) {
@@ -230,6 +243,7 @@ function onSubmit(message: string) {
 
 	chatStore.sendMessage(
 		sessionId.value,
+		chatMessages.value[chatMessages.value.length - 1]?.id ?? null,
 		message,
 		selectedModel.value,
 		selectedModel.value && credentialsId
@@ -314,7 +328,7 @@ function handleSelectCredentials(provider: ChatHubProvider, credentialsId: strin
 }
 
 function handleSwitchAlternative(messageId: string) {
-	chatStore.switchAlternative(sessionId.value, messageId);
+	selectedAlternative.value = messageId;
 }
 </script>
 
@@ -366,6 +380,7 @@ function handleSwitchAlternative(messageId: string) {
 								? scrollContainerRef.offsetHeight - 30 /* padding-top */ - 200 /* padding-bottom */
 								: undefined
 						"
+						:alternatives="messagesByPreviousId.get(message.previousMessageId) ?? []"
 						@start-edit="handleStartEditMessage(message.id)"
 						@cancel-edit="handleCancelEditMessage"
 						@regenerate="handleRegenerateMessage"

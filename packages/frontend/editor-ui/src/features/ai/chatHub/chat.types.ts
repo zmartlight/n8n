@@ -1,9 +1,9 @@
 import {
 	chatHubProviderSchema,
 	type ChatHubMessageDto,
-	type ChatMessageId,
 	type ChatHubSessionDto,
 	type ChatHubConversationDto,
+	type ChatMessageId,
 } from '@n8n/api-types';
 import { z } from 'zod';
 
@@ -33,15 +33,9 @@ export interface ErrorMessage {
 
 export type StreamChunk = AssistantMessage | ErrorMessage;
 
-export interface ChatMessage extends ChatHubMessageDto {
-	responses: ChatMessageId[];
-	alternatives: ChatMessageId[];
-}
+export type ChatMessage = ChatHubMessageDto;
 
-export interface ChatConversation extends ChatHubConversationDto {
-	messages: Record<ChatMessageId, ChatMessage>;
-	activeMessageChain: ChatMessageId[];
-}
+export type ChatConversation = ChatHubConversationDto;
 
 export interface StreamOutput {
 	messages: StreamChunk[];
@@ -82,3 +76,5 @@ export interface GroupedConversations {
 	group: string;
 	sessions: ChatHubSessionDto[];
 }
+
+export type GroupedMessages = Map<ChatMessageId | null, ChatMessageId[]>;

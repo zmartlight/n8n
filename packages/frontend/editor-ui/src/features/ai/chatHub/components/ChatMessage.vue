@@ -14,7 +14,7 @@ import { useSpeechSynthesis } from '@vueuse/core';
 import type { ChatMessage } from '../chat.types';
 import type { ChatMessageId } from '@n8n/api-types';
 
-const { message, compact, isEditing, isStreaming, minHeight } = defineProps<{
+const { message, compact, isEditing, isStreaming, minHeight, alternatives } = defineProps<{
 	message: ChatMessage;
 	compact: boolean;
 	isEditing: boolean;
@@ -23,6 +23,7 @@ const { message, compact, isEditing, isStreaming, minHeight } = defineProps<{
 	 * minHeight allows scrolling agent's response to the top while it is being generated
 	 */
 	minHeight?: number;
+	alternatives: ChatMessageId[];
 }>();
 
 const emit = defineEmits<{
@@ -190,7 +191,7 @@ onBeforeMount(() => {
 					:is-speaking="speech.isPlaying.value"
 					:class="$style.actions"
 					:message-id="message.id"
-					:alternatives="message.alternatives"
+					:alternatives="alternatives"
 					@copy="handleCopy"
 					@edit="handleEdit"
 					@regenerate="handleRegenerate"
