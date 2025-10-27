@@ -45,6 +45,25 @@ describe('ProcessEnvAccessRule', () => {
 	});
 
 	describe('detectWorkflow()', () => {
+		it('should return no issues when N8N_BLOCK_ENV_ACCESS_IN_NODE is set to false', async () => {
+			process.env.N8N_BLOCK_ENV_ACCESS_IN_NODE = 'false';
+
+			const { workflow, nodesGroupedByType } = createWorkflow('wf-1', 'Test Workflow', [
+				createNode('Code', 'n8n-nodes-base.code', {
+					code: 'const apiKey = process.env.API_KEY;\nreturn { apiKey };',
+				}),
+			]);
+
+			const result = await rule.detectWorkflow(workflow, nodesGroupedByType);
+
+			expect(result).toEqual({
+				isAffected: false,
+				issues: [],
+			});
+
+			delete process.env.N8N_BLOCK_ENV_ACCESS_IN_NODE;
+		});
+
 		it('should return no issues when no process.env usage is found', async () => {
 			const { workflow, nodesGroupedByType } = createWorkflow('wf-1', 'Clean Workflow', [
 				createNode('Code', 'n8n-nodes-base.code', {
@@ -77,7 +96,7 @@ describe('ProcessEnvAccessRule', () => {
 			expect(result.issues[0]).toMatchObject({
 				title: 'process.env access detected',
 				description:
-					"The following nodes contain process.env access: 'Code'. This will be blocked by default in v2.0.0.",
+					"The following nodes contain process.env access: 'Code'. This will be blocked by default in v2.",
 				level: IssueLevel.error,
 			});
 		});
