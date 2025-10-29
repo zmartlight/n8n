@@ -17,7 +17,7 @@ test.describe('Execute previous nodes', () => {
 		// Verify that the input panel has data from Code1 (which was executed)
 		await expect(n8n.ndv.inputPanel.get()).toContainText('myNewField');
 
-		// CRITICAL: Verify Code2 (current node) was NOT executed
+		// Verify Code2 (current node) was NOT executed.
 		// The output panel should show the placeholder text, not execution results
 		await expect(n8n.ndv.outputPanel.get()).toContainText('Execute this node to view data');
 
