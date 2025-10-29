@@ -135,7 +135,6 @@ export class WorkflowExecute {
 		let runNodeFilter: string[] | undefined;
 		if (destinationNode) {
 			runNodeFilter = workflow.getParentNodes(destinationNode);
-			runNodeFilter.push(destinationNode);
 		}
 
 		// Initialize the data of the start nodes
