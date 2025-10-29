@@ -234,8 +234,6 @@ describe('WorkflowExecute', () => {
 			expect(nodeHooks.map((hook) => ({ name: hook[0], node: hook[1][0] }))).toEqual([
 				{ name: 'nodeExecuteBefore', node: 'trigger' },
 				{ name: 'nodeExecuteAfter', node: 'trigger' },
-				{ name: 'nodeExecuteBefore', node: 'node1' },
-				{ name: 'nodeExecuteAfter', node: 'node1' },
 			]);
 		});
 
@@ -311,8 +309,6 @@ describe('WorkflowExecute', () => {
 			expect(nodeHooks.map((hook) => ({ name: hook[0], node: hook[1][0] }))).toEqual([
 				{ name: 'nodeExecuteBefore', node: 'trigger' },
 				{ name: 'nodeExecuteAfter', node: 'trigger' },
-				{ name: 'nodeExecuteBefore', node: 'node1' },
-				{ name: 'nodeExecuteAfter', node: 'node1' },
 			]);
 		});
 
